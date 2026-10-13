@@ -7,6 +7,8 @@ public record DroneAcuatico(
         boolean disponible,
         String zona
 ) {
+
+    public static final int BATERIA_MINIMA_OPERACION = 35;
     private static final int BATERIA_MINIMA = 0;
     private static final int BATERIA_MAXIMA = 100;
 
