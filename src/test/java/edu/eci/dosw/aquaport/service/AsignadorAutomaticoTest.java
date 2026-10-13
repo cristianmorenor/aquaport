@@ -6,6 +6,7 @@ import edu.eci.dosw.aquaport.domain.DroneSuperficial;
 import edu.eci.dosw.aquaport.domain.EstadoDrone;
 import edu.eci.dosw.aquaport.domain.EstrategiaSeleccion;
 import edu.eci.dosw.aquaport.domain.Mision;
+import edu.eci.dosw.aquaport.domain.ObservadorMision;
 import edu.eci.dosw.aquaport.domain.Prioridad;
 import edu.eci.dosw.aquaport.domain.RepositorioDrones;
 import edu.eci.dosw.aquaport.domain.SolicitudMision;
@@ -26,7 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,15 +42,26 @@ class AsignadorAutomaticoTest {
     @Mock
     private RepositorioDrones repositorioMock;
 
+    @Mock
+    private ObservadorMision centroControlMock;
+
+    @Mock
+    private ObservadorMision tecnicoMock;
+
     @InjectMocks
     private AsignadorAutomatico asignador;
 
     private SolicitudMision solicitud;
+    private SolicitudMision solicitudCritica;
 
     @BeforeEach
     void setUp() {
         solicitud = new SolicitudMision("M-040", ZonaHidrica.LAB_HIDRICO, TipoCarga.MUESTRA_AGUA,
                 200, Prioridad.NORMAL);
+        solicitudCritica = new SolicitudMision("M-050", ZonaHidrica.LAB_HIDRICO, TipoCarga.MUESTRA_AGUA,
+                200, Prioridad.CRITICA);
+        asignador.registrarObservador(centroControlMock);
+        asignador.registrarObservador(tecnicoMock);
     }
 
     @Test
@@ -143,5 +157,86 @@ class AsignadorAutomaticoTest {
     void asignar_solicitudNula_lanzaExcepcion() {
         // Act + Assert
         assertThrows(NullPointerException.class, () -> asignador.asignar(null));
+    }
+
+    @Test
+    @DisplayName("Misión CRÍTICA sin drones disponibles notifica a los observadores")
+    void asignar_misionCriticaSinDrones_notificaObservadores() {
+        // Arrange
+        when(repositorioMock.listarTodos()).thenReturn(List.of());
+        // Act
+        asignador.asignar(solicitudCritica);
+        // Assert
+        verify(centroControlMock, times(1)).notificarFalloAsignacion(eq(solicitudCritica), any());
+    }
+
+    @Test
+    @DisplayName("Misión NORMAL sin drones disponibles no genera alerta")
+    void asignar_misionNormalSinDrones_noNotificaObservadores() {
+        // Arrange
+        when(repositorioMock.listarTodos()).thenReturn(List.of());
+        // Act
+        asignador.asignar(solicitud);
+        // Assert
+        verify(centroControlMock, never()).notificarFalloAsignacion(any(), any());
+    }
+
+    @Test
+    @DisplayName("Si la estrategia elige un drone en FALLO se asigna un drone alternativo")
+    void asignar_droneEnFallo_asignaDroneAlternativo() {
+        // Arrange
+        DroneAcuatico droneEnFallo = conEstado(new DroneSuperficial("AR-15", 68, ZonaHidrica.RIBERA_ESTE),
+                EstadoDrone.FALLO);
+        DroneAcuatico alternativo = new DroneSuperficial("AR-04", 73, ZonaHidrica.RIBERA_ESTE);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(alternativo));
+        when(estrategiaMock.seleccionar(any(), any()))
+                .thenReturn(Optional.of(droneEnFallo))
+                .thenReturn(Optional.of(alternativo));
+        // Act
+        Optional<Mision> mision = asignador.asignar(solicitud);
+        // Assert
+        assertEquals(Optional.of(alternativo), mision.map(Mision::getDrone));
+    }
+
+    @Test
+    @DisplayName("Un drone en FALLO durante la asignación notifica a todos los observadores exactamente una vez")
+    void asignar_droneEnFallo_notificaATodosLosObservadoresUnaVez() {
+        // Arrange
+        DroneAcuatico droneEnFallo = conEstado(new DroneSuperficial("AR-15", 68, ZonaHidrica.RIBERA_ESTE),
+                EstadoDrone.FALLO);
+        DroneAcuatico alternativo = new DroneSuperficial("AR-04", 73, ZonaHidrica.RIBERA_ESTE);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(alternativo));
+        when(estrategiaMock.seleccionar(any(), any()))
+                .thenReturn(Optional.of(droneEnFallo))
+                .thenReturn(Optional.of(alternativo));
+        // Act
+        asignador.asignar(solicitud);
+        // Assert
+        verify(centroControlMock, times(1)).notificarFalloAsignacion(eq(solicitud), any());
+        verify(tecnicoMock, times(1)).notificarFalloAsignacion(eq(solicitud), any());
+    }
+
+    @Test
+    @DisplayName("Un observador eliminado ya no recibe alertas")
+    void eliminarObservador_observadorEliminado_noEsNotificado() {
+        // Arrange
+        asignador.eliminarObservador(tecnicoMock);
+        when(repositorioMock.listarTodos()).thenReturn(List.of());
+        // Act
+        asignador.asignar(solicitudCritica);
+        // Assert
+        verify(tecnicoMock, never()).notificarFalloAsignacion(any(), any());
+    }
+
+    @Test
+    @DisplayName("Registrar un observador nulo lanza NullPointerException")
+    void registrarObservador_observadorNulo_lanzaExcepcion() {
+        // Act + Assert
+        assertThrows(NullPointerException.class, () -> asignador.registrarObservador(null));
+    }
+
+    private static DroneAcuatico conEstado(DroneAcuatico drone, EstadoDrone estado) {
+        drone.actualizarEstado(estado);
+        return drone;
     }
 }
