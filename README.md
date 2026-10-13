@@ -55,7 +55,7 @@ docs/                 diagramas, requisitos, plantillas, mocks y evidencias
 
 | Rama | Propósito |
 |---|---|
-| `main` | Solo versiones entregadas, cada una con su tag (`v1.0.0-piplup`, `v2.0.0`, `v2.0.1`) |
+| `main` | Solo versiones entregadas, cada una con su tag (`v1.0.0-piplup`, `v2.0.0`) |
 | `develop` | Integración del trabajo en curso |
 | `feature/*` | Una rama por funcionalidad, integrada a `develop` por Pull Request |
 | `release/v2.0` | Preparación de la versión 2.0: solo ajustes, sin funcionalidades nuevas |
@@ -94,13 +94,6 @@ gitGraph
     merge release/v2.0 tag: "v2.0.0"
     checkout develop
     merge release/v2.0
-    checkout main
-    branch hotfix/fix-bateria-critica
-    commit id: "no asignar drones con batería crítica"
-    checkout main
-    merge hotfix/fix-bateria-critica tag: "v2.0.1"
-    checkout develop
-    merge hotfix/fix-bateria-critica
 ```
 
 Commits con el formato `tipo: descripción`: `feat`, `test`, `refactor`, `fix`, `docs`, `build` y `chore`. En las clases desarrolladas con TDD, el commit `test:` (fase RED) siempre va antes del `feat:` (fase GREEN).
