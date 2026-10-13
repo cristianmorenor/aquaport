@@ -103,4 +103,39 @@ class ValidadorMisionTest {
         // Act + Assert
         assertDoesNotThrow(() -> validador.validarPuntoLlegada("Laboratorio Hídrico"));
     }
+    @Test
+    @DisplayName("Zona del campus registrada en el MVP es válida")
+    void isZonaValida_zonaDelCampus_retornaTrue() {
+        // Act
+        boolean resultado = validador.isZonaValida("Laboratorio Hídrico");
+        // Assert
+        assertTrue(resultado);
+    }
+
+    @Test
+    @DisplayName("Zona que no pertenece al campus no es válida")
+    void isZonaValida_zonaDesconocida_retornaFalse() {
+        // Act
+        boolean resultado = validador.isZonaValida("Río Bogotá");
+        // Assert
+        assertFalse(resultado);
+    }
+
+    @Test
+    @DisplayName("Zona nula no es válida")
+    void isZonaValida_zonaNula_retornaFalse() {
+        // Act
+        boolean resultado = validador.isZonaValida(null);
+        // Assert
+        assertFalse(resultado);
+    }
+
+    @Test
+    @DisplayName("Zona escrita con mayúsculas distintas no es válida")
+    void isZonaValida_zonaConMayusculasDistintas_retornaFalse() {
+        // Act
+        boolean resultado = validador.isZonaValida("embalse norte");
+        // Assert
+        assertFalse(resultado);
+    }
 }
