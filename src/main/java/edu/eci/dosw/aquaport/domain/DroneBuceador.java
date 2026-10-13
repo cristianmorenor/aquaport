@@ -2,6 +2,7 @@ package edu.eci.dosw.aquaport.domain;
 
 public class DroneBuceador extends DroneAcuatico {
 
+    public static final String TIPO = "BUCEADOR";
     private static final String MODELO = "Aqua-Ranger 300";
     private static final int CAPACIDAD_CARGA_GRAMOS = 300;
 
@@ -11,7 +12,7 @@ public class DroneBuceador extends DroneAcuatico {
 
     @Override
     public String getTipo() {
-        return "BUCEADOR";
+        return TIPO;
     }
 
     @Override

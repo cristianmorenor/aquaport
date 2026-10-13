@@ -2,6 +2,7 @@ package edu.eci.dosw.aquaport.domain;
 
 public class DroneSuperficial extends DroneAcuatico {
 
+    public static final String TIPO = "SUPERFICIAL";
     private static final String MODELO = "Aqua-Ranger 100";
     private static final int CAPACIDAD_CARGA_GRAMOS = 500;
 
@@ -11,7 +12,7 @@ public class DroneSuperficial extends DroneAcuatico {
 
     @Override
     public String getTipo() {
-        return "SUPERFICIAL";
+        return TIPO;
     }
 
     @Override
