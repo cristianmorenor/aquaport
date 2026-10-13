@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public class ConsultorFlota {
 
-    private static final int BATERIA_MINIMA_OPERACION = 35;
 
     public List<DroneAcuatico> obtenerDisponiblesOrdenadosPorBateria(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
@@ -42,7 +41,7 @@ public class ConsultorFlota {
     }
 
     private static boolean isOperativo(DroneAcuatico drone) {
-        return drone.disponible() && drone.bateria() >= BATERIA_MINIMA_OPERACION;
+        return drone.disponible() && drone.bateria() >= DroneAcuatico.BATERIA_MINIMA_OPERACION;
     }
 
     private static List<DroneAcuatico> validarFlota(List<DroneAcuatico> flota) {

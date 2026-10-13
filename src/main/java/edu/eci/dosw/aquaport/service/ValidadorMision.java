@@ -6,10 +6,9 @@ import java.util.Objects;
 
 public class ValidadorMision {
 
-    private static final int BATERIA_MINIMA_ASIGNACION = 35;
 
     public boolean hasBateriaSuficiente(DroneAcuatico drone) {
-        return validarDrone(drone).bateria() >= BATERIA_MINIMA_ASIGNACION;
+        return validarDrone(drone).bateria() >= DroneAcuatico.BATERIA_MINIMA_OPERACION;
     }
 
     public boolean isDroneDisponible(DroneAcuatico drone) {
