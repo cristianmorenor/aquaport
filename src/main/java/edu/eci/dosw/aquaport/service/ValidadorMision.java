@@ -13,13 +13,15 @@ public class ValidadorMision {
             "Punto Ribereño Este",
             "Laboratorio Hídrico"
     );
+
     public boolean hasBateriaSuficiente(DroneAcuatico drone) {
-        return validarDrone(drone).bateria() >= DroneAcuatico.BATERIA_MINIMA_OPERACION;
+        return validarDrone(drone).getBateria() >= DroneAcuatico.BATERIA_MINIMA_OPERACION;
     }
 
     public boolean isDroneDisponible(DroneAcuatico drone) {
-        return validarDrone(drone).disponible();
+        return validarDrone(drone).isDisponible();
     }
+
 
     public void validarPuntoLlegada(String puntoLlegada) {
         if (puntoLlegada == null || puntoLlegada.isBlank()) {

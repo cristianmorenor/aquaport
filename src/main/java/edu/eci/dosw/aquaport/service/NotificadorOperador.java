@@ -14,7 +14,7 @@ public class NotificadorOperador {
     }
 
     public void notificarMisionRegistrada(Mision mision) {
-        salida.println("Misión " + mision.getId() + " registrada: drone " + mision.getDrone().id()
+                salida.println("Misión " + mision.getId() + " registrada: drone " + mision.getDrone().getId()
                 + " de " + mision.getPuntoPartida() + " a " + mision.getPuntoLlegada()
                 + " con " + mision.getTipoCarga() + " (" + mision.getEstado() + ")");
     }

@@ -93,9 +93,9 @@ public final class Mision {
 
         private void validarDrone() {
             validarObligatorio(drone, "drone");
-            if (!drone.disponible()) {
+            if (!drone.isDisponible()) {
                 throw new IllegalStateException(
-                        "El drone " + drone.id() + " no está disponible para asignarle una misión");
+                        "El drone " + drone.getId() + " no está disponible para asignarle una misión");
             }
         }
 
