@@ -57,4 +57,11 @@ class FabricaDronesTest {
         // Act + Assert
         assertThrows(NullPointerException.class, () -> fabrica.registrarTipo("SUMERGIBLE_PROFUNDO", null));
     }
+
+    @Test
+    @DisplayName("Registrar un tipo nulo lanza IllegalArgumentException")
+    void registrarTipo_tipoNulo_lanzaExcepcion() {
+        // Act + Assert
+        assertThrows(IllegalArgumentException.class, () -> fabrica.registrarTipo(null, DroneBuceador::new));
+    }
 }

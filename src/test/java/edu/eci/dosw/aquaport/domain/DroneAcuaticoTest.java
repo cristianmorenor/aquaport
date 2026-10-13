@@ -173,4 +173,20 @@ class DroneAcuaticoTest {
         // Assert
         assertFalse(operativo);
     }
+
+    @Test
+    @DisplayName("Crear un drone con id nulo lanza IllegalArgumentException")
+    void constructor_idNulo_lanzaExcepcion() {
+        // Act + Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> new DroneSuperficial(null, 92, ZonaHidrica.EMBALSE_NORTE));
+    }
+
+    @Test
+    @DisplayName("Crear un drone con batería negativa lanza IllegalArgumentException")
+    void constructor_bateriaNegativa_lanzaExcepcion() {
+        // Act + Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> new DroneSuperficial("AR-01", -1, ZonaHidrica.EMBALSE_NORTE));
+    }
 }

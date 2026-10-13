@@ -64,4 +64,12 @@ class SolicitudMisionTest {
         assertThrows(NullPointerException.class, () -> new SolicitudMision("M-014",
                 null, TipoCarga.SENSOR, 200, Prioridad.NORMAL));
     }
+
+    @Test
+    @DisplayName("Una solicitud con id nulo lanza IllegalArgumentException")
+    void constructor_idNulo_lanzaExcepcion() {
+        // Act + Assert
+        assertThrows(IllegalArgumentException.class, () -> new SolicitudMision(null,
+                ZonaHidrica.LAB_HIDRICO, TipoCarga.SENSOR, 200, Prioridad.NORMAL));
+    }
 }
