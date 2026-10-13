@@ -37,6 +37,10 @@ public abstract class DroneAcuatico {
         return estado == EstadoDrone.DISPONIBLE;
     }
 
+    public boolean isOperativo() {
+        return isDisponible() && bateria >= BATERIA_MINIMA_OPERACION;
+    }
+
     public boolean canTransportar(int pesoGramos) {
         if (pesoGramos <= 0) {
             throw new IllegalArgumentException("El peso de la carga debe ser mayor a 0 gramos, pero fue " + pesoGramos);
