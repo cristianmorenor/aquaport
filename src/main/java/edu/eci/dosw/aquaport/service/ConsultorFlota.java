@@ -9,39 +9,34 @@ import java.util.Optional;
 
 public class ConsultorFlota {
 
-
     public List<DroneAcuatico> obtenerDisponiblesOrdenadosPorBateria(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
-                .filter(ConsultorFlota::isOperativo)
-                .sorted(Comparator.comparingInt(DroneAcuatico::bateria).reversed())
+                .filter(DroneAcuatico::isOperativo)
+                .sorted(Comparator.comparingInt(DroneAcuatico::getBateria).reversed())
                 .toList();
     }
 
     public List<String> obtenerIdsDisponibles(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
-                .filter(DroneAcuatico::disponible)
-                .map(DroneAcuatico::id)
+                .filter(DroneAcuatico::isDisponible)
+                .map(DroneAcuatico::getId)
                 .toList();
     }
 
     public boolean hasDroneOperativo(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
-                .anyMatch(ConsultorFlota::isOperativo);
+                .anyMatch(DroneAcuatico::isOperativo);
     }
 
     public long contarDisponibles(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
-                .filter(DroneAcuatico::disponible)
+                .filter(DroneAcuatico::isDisponible)
                 .count();
     }
 
     public Optional<DroneAcuatico> obtenerDroneConMayorBateria(List<DroneAcuatico> flota) {
         return validarFlota(flota).stream()
-                .max(Comparator.comparingInt(DroneAcuatico::bateria));
-    }
-
-    private static boolean isOperativo(DroneAcuatico drone) {
-        return drone.disponible() && drone.bateria() >= DroneAcuatico.BATERIA_MINIMA_OPERACION;
+                .max(Comparator.comparingInt(DroneAcuatico::getBateria));
     }
 
     private static List<DroneAcuatico> validarFlota(List<DroneAcuatico> flota) {

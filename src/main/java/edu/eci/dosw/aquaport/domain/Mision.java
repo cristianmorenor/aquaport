@@ -8,6 +8,7 @@ public final class Mision {
     private final String puntoLlegada;
     private final TipoCarga tipoCarga;
     private final EstadoMision estado;
+    private final Prioridad prioridad;
 
     private Mision(Builder builder) {
         this.id = builder.id;
@@ -16,6 +17,7 @@ public final class Mision {
         this.puntoLlegada = builder.puntoLlegada;
         this.tipoCarga = builder.tipoCarga;
         this.estado = builder.estado;
+        this.prioridad = builder.prioridad;
     }
 
     public String getId() {
@@ -42,6 +44,10 @@ public final class Mision {
         return estado;
     }
 
+    public Prioridad getPrioridad() {
+        return prioridad;
+    }
+
     public static final class Builder {
 
         private String id;
@@ -50,6 +56,7 @@ public final class Mision {
         private String puntoLlegada;
         private TipoCarga tipoCarga;
         private EstadoMision estado = EstadoMision.PENDIENTE;
+        private Prioridad prioridad = Prioridad.NORMAL;
 
         public Builder id(String id) {
             this.id = id;
@@ -81,6 +88,11 @@ public final class Mision {
             return this;
         }
 
+        public Builder prioridad(Prioridad prioridad) {
+            this.prioridad = prioridad;
+            return this;
+        }
+
         public Mision build() {
             validarTextoObligatorio(id, "id");
             validarTextoObligatorio(puntoPartida, "puntoPartida");
@@ -88,14 +100,15 @@ public final class Mision {
             validarDrone();
             validarObligatorio(tipoCarga, "tipoCarga");
             validarObligatorio(estado, "estado");
+            validarObligatorio(prioridad, "prioridad");
             return new Mision(this);
         }
 
         private void validarDrone() {
             validarObligatorio(drone, "drone");
-            if (!drone.disponible()) {
+            if (!drone.isDisponible()) {
                 throw new IllegalStateException(
-                        "El drone " + drone.id() + " no está disponible para asignarle una misión");
+                        "El drone " + drone.getId() + " no está disponible para asignarle una misión");
             }
         }
 

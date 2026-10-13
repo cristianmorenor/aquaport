@@ -1,13 +1,14 @@
 package edu.eci.dosw.aquaport;
 
 import edu.eci.dosw.aquaport.domain.DroneAcuatico;
+import edu.eci.dosw.aquaport.domain.DroneSuperficial;
+import edu.eci.dosw.aquaport.domain.EstadoDrone;
+import edu.eci.dosw.aquaport.domain.ZonaHidrica;
 import edu.eci.dosw.aquaport.service.ConsultorFlota;
 
 import java.util.List;
 
 public class AquaPortApp {
-
-    private static final String MODELO_FLOTA = "Aqua-Ranger 100";
 
     public static void main(String[] args) {
         List<DroneAcuatico> flota = crearFlotaDeEjemplo();
@@ -28,11 +29,13 @@ public class AquaPortApp {
     }
 
     private static List<DroneAcuatico> crearFlotaDeEjemplo() {
+        DroneAcuatico droneRecargando = new DroneSuperficial("AR-03", 18, ZonaHidrica.LAGUNA_SUR);
+        droneRecargando.actualizarEstado(EstadoDrone.RECARGANDO);
         return List.of(
-                new DroneAcuatico("AR-01", MODELO_FLOTA, 92, true, "Embalse Norte"),
-                new DroneAcuatico("AR-02", MODELO_FLOTA, 45, true, "Canal Central"),
-                new DroneAcuatico("AR-03", MODELO_FLOTA, 18, false, "Laguna Sur"),
-                new DroneAcuatico("AR-04", MODELO_FLOTA, 73, true, "Punto Ribereño Este")
+                new DroneSuperficial("AR-01", 92, ZonaHidrica.EMBALSE_NORTE),
+                new DroneSuperficial("AR-02", 45, ZonaHidrica.CANAL_CENTRAL),
+                droneRecargando,
+                new DroneSuperficial("AR-04", 73, ZonaHidrica.RIBERA_ESTE)
         );
     }
 
@@ -43,6 +46,6 @@ public class AquaPortApp {
     }
 
     private static String describirDrone(DroneAcuatico drone) {
-        return drone.id() + " (" + drone.bateria() + "%)";
+        return drone.getId() + " (" + drone.getBateria() + "%)";
     }
 }
