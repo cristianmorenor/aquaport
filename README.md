@@ -63,37 +63,20 @@ docs/                 diagramas, requisitos, plantillas, mocks y evidencias
 
 ### Diagrama de ramas de la v2
 
-```mermaid
-gitGraph
-    commit id: "MVP Piplup" tag: "v1.0.0-piplup"
-    branch develop
-    checkout develop
-    branch feature/factory-drones
-    commit id: "jerarquía de drones y FabricaDrones"
-    checkout develop
-    merge feature/factory-drones
-    branch feature/streams-v2
-    commit id: "consultas avanzadas"
-    checkout develop
-    merge feature/streams-v2
-    branch feature/asignacion-automatica
-    commit id: "AsignadorAutomatico + Strategy"
-    checkout develop
-    merge feature/asignacion-automatica
-    branch feature/alertas-centro-control
-    commit id: "Observer"
-    checkout develop
-    merge feature/alertas-centro-control
-    branch feature/jacoco-quality-gate
-    commit id: "quality gate 80%"
-    checkout develop
-    merge feature/jacoco-quality-gate
-    branch release/v2.0
-    commit id: "versión 2.0.0"
-    checkout main
-    merge release/v2.0 tag: "v2.0.0"
-    checkout develop
-    merge release/v2.0
+```
+main          o-----------------------------------------------o  v2.0.0
+              v1.0.0-piplup                                   ^
+                                                              |
+release/v2.0                                       o----------+  version 2.0.0
+                                                   ^          |
+                                                   |          v
+develop       o-----o-----o-----o-----o-----o------+----------o
+                    ^     ^     ^     ^     ^
+                    |     |     |     |     +-- feature/jacoco-quality-gate
+                    |     |     |     +-------- feature/alertas-centro-control
+                    |     |     +-------------- feature/asignacion-automatica
+                    |     +-------------------- feature/streams-v2
+                    +-------------------------- feature/factory-drones
 ```
 
 Commits con el formato `tipo: descripción`: `feat`, `test`, `refactor`, `fix`, `docs`, `build` y `chore`. En las clases desarrolladas con TDD, el commit `test:` (fase RED) siempre va antes del `feat:` (fase GREEN).
