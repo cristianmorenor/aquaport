@@ -4,9 +4,11 @@ import edu.eci.dosw.aquaport.domain.DroneAcuatico;
 import edu.eci.dosw.aquaport.domain.EstadoDrone;
 import edu.eci.dosw.aquaport.domain.EstrategiaSeleccion;
 import edu.eci.dosw.aquaport.domain.Mision;
+import edu.eci.dosw.aquaport.domain.ObservadorMision;
 import edu.eci.dosw.aquaport.domain.RepositorioDrones;
 import edu.eci.dosw.aquaport.domain.SolicitudMision;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,6 +16,7 @@ import java.util.Optional;
 public class AsignadorAutomatico {
 
     private final RepositorioDrones repositorioDrones;
+    private final List<ObservadorMision> observadores = new ArrayList<>();
     private EstrategiaSeleccion estrategia;
 
     public AsignadorAutomatico(EstrategiaSeleccion estrategia, RepositorioDrones repositorioDrones) {
@@ -26,14 +29,22 @@ public class AsignadorAutomatico {
         this.estrategia = Objects.requireNonNull(nuevaEstrategia, "La nueva estrategia no puede ser nula");
     }
 
+    public void registrarObservador(ObservadorMision observador) {
+        observadores.add(Objects.requireNonNull(observador, "El observador a registrar no puede ser nulo"));
+    }
+
+    public void eliminarObservador(ObservadorMision observador) {
+        observadores.remove(observador);
+    }
+
     public Optional<Mision> asignar(SolicitudMision solicitud) {
         Objects.requireNonNull(solicitud, "La solicitud de misión no puede ser nula");
-        List<DroneAcuatico> candidatos = filtrarAptos(solicitud);
-        if (candidatos.isEmpty()) {
-            return Optional.empty();
-        }
-        return estrategia.seleccionar(candidatos, solicitud)
+        Optional<Mision> mision = seleccionarDroneSinFallo(filtrarAptos(solicitud), solicitud)
                 .map(drone -> asignarDrone(solicitud, drone));
+        if (mision.isEmpty() && solicitud.isCritica()) {
+            notificarObservadores(solicitud, "No hay drones disponibles para la misión crítica " + solicitud.id());
+        }
+        return mision;
     }
 
     private List<DroneAcuatico> filtrarAptos(SolicitudMision solicitud) {
@@ -41,6 +52,32 @@ public class AsignadorAutomatico {
                 .filter(DroneAcuatico::isOperativo)
                 .filter(drone -> drone.canTransportar(solicitud.pesoGramos()))
                 .toList();
+    }
+
+    private Optional<DroneAcuatico> seleccionarDroneSinFallo(List<DroneAcuatico> candidatos,
+                                                             SolicitudMision solicitud) {
+        if (candidatos.isEmpty()) {
+            return Optional.empty();
+        }
+        return estrategia.seleccionar(candidatos, solicitud)
+                .flatMap(drone -> descartarSiEstaEnFallo(drone, candidatos, solicitud));
+    }
+
+    private Optional<DroneAcuatico> descartarSiEstaEnFallo(DroneAcuatico drone, List<DroneAcuatico> candidatos,
+                                                           SolicitudMision solicitud) {
+        if (drone.getEstado() != EstadoDrone.FALLO) {
+            return Optional.of(drone);
+        }
+        notificarObservadores(solicitud,
+                "El drone " + drone.getId() + " está en FALLO; se busca un drone alternativo");
+        List<DroneAcuatico> sinDroneEnFallo = candidatos.stream()
+                .filter(candidato -> candidato != drone)
+                .toList();
+        return seleccionarDroneSinFallo(sinDroneEnFallo, solicitud);
+    }
+
+    private void notificarObservadores(SolicitudMision solicitud, String motivo) {
+        observadores.forEach(observador -> observador.notificarFalloAsignacion(solicitud, motivo));
     }
 
     private Mision asignarDrone(SolicitudMision solicitud, DroneAcuatico drone) {
