@@ -139,4 +139,38 @@ class DroneAcuaticoTest {
         // Act + Assert
         assertThrows(NullPointerException.class, () -> new DroneSuperficial("AR-01", 92, null));
     }
+
+    @Test
+    @DisplayName("Un drone disponible con batería exactamente en 35% está operativo")
+    void isOperativo_disponibleConBateriaEnMinimo_retornaTrue() {
+        // Arrange
+        DroneAcuatico drone = new DroneSuperficial("AR-02", 35, ZonaHidrica.CANAL_CENTRAL);
+        // Act
+        boolean operativo = drone.isOperativo();
+        // Assert
+        assertTrue(operativo);
+    }
+
+    @Test
+    @DisplayName("Un drone disponible con batería en 34% no está operativo")
+    void isOperativo_disponibleConBateriaBajoMinimo_retornaFalse() {
+        // Arrange
+        DroneAcuatico drone = new DroneSuperficial("AR-03", 34, ZonaHidrica.LAGUNA_SUR);
+        // Act
+        boolean operativo = drone.isOperativo();
+        // Assert
+        assertFalse(operativo);
+    }
+
+    @Test
+    @DisplayName("Un drone en misión no está operativo aunque tenga batería")
+    void isOperativo_droneEnMision_retornaFalse() {
+        // Arrange
+        DroneAcuatico drone = new DroneSuperficial("AR-01", 92, ZonaHidrica.EMBALSE_NORTE);
+        drone.actualizarEstado(EstadoDrone.EN_MISION);
+        // Act
+        boolean operativo = drone.isOperativo();
+        // Assert
+        assertFalse(operativo);
+    }
 }
