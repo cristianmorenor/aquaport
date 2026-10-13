@@ -39,7 +39,7 @@ public class AsignadorAutomatico {
 
     public Optional<Mision> asignar(SolicitudMision solicitud) {
         Objects.requireNonNull(solicitud, "La solicitud de misión no puede ser nula");
-        Optional<Mision> mision = seleccionarDroneSinFallo(filtrarAptos(solicitud), solicitud)
+        Optional<Mision> mision = seleccionarDroneOperativo(filtrarAptos(solicitud), solicitud)
                 .map(drone -> asignarDrone(solicitud, drone));
         if (mision.isEmpty() && solicitud.isCritica()) {
             notificarObservadores(solicitud, "No hay drones disponibles para la misión crítica " + solicitud.id());
@@ -54,26 +54,26 @@ public class AsignadorAutomatico {
                 .toList();
     }
 
-    private Optional<DroneAcuatico> seleccionarDroneSinFallo(List<DroneAcuatico> candidatos,
+    private Optional<DroneAcuatico> seleccionarDroneOperativo(List<DroneAcuatico> candidatos,
                                                              SolicitudMision solicitud) {
         if (candidatos.isEmpty()) {
             return Optional.empty();
         }
         return estrategia.seleccionar(candidatos, solicitud)
-                .flatMap(drone -> descartarSiEstaEnFallo(drone, candidatos, solicitud));
+                .flatMap(drone -> descartarSiNoEstaOperativo(drone, candidatos, solicitud));
     }
 
-    private Optional<DroneAcuatico> descartarSiEstaEnFallo(DroneAcuatico drone, List<DroneAcuatico> candidatos,
-                                                           SolicitudMision solicitud) {
-        if (drone.getEstado() != EstadoDrone.FALLO) {
+    private Optional<DroneAcuatico> descartarSiNoEstaOperativo(DroneAcuatico drone, List<DroneAcuatico> candidatos,
+                                                              SolicitudMision solicitud) {
+        if (drone.isOperativo()) {
             return Optional.of(drone);
         }
-        notificarObservadores(solicitud,
-                "El drone " + drone.getId() + " está en FALLO; se busca un drone alternativo");
-        List<DroneAcuatico> sinDroneEnFallo = candidatos.stream()
+        notificarObservadores(solicitud, "El drone " + drone.getId() + " no está operativo (estado "
+                + drone.getEstado() + ", batería " + drone.getBateria() + "%); se busca un drone alternativo");
+        List<DroneAcuatico> sinDroneDescartado = candidatos.stream()
                 .filter(candidato -> candidato != drone)
                 .toList();
-        return seleccionarDroneSinFallo(sinDroneEnFallo, solicitud);
+        return seleccionarDroneOperativo(sinDroneDescartado, solicitud);
     }
 
     private void notificarObservadores(SolicitudMision solicitud, String motivo) {

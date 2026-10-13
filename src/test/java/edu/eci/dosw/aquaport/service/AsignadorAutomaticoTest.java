@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -88,6 +89,34 @@ class AsignadorAutomaticoTest {
         asignador.asignar(solicitud);
         // Assert
         assertEquals(EstadoDrone.EN_MISION, drone.getEstado());
+    }
+
+    @Test
+    @DisplayName("La misión asignada llega a la zona de destino de la solicitud")
+    void asignar_estrategiaEligeDrone_misionLlegaAZonaDestino() {
+        // Arrange
+        DroneAcuatico drone = new DroneSuperficial("AR-01", 92, ZonaHidrica.EMBALSE_NORTE);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(drone));
+        when(estrategiaMock.seleccionar(List.of(drone), solicitud)).thenReturn(Optional.of(drone));
+        // Act
+        Optional<Mision> mision = asignador.asignar(solicitud);
+        // Assert
+        assertEquals(Optional.of("Laboratorio Hídrico"), mision.map(Mision::getPuntoLlegada));
+    }
+
+    @Test
+    @DisplayName("Al cambiar la estrategia el asignador usa la nueva estrategia")
+    void cambiarEstrategia_nuevaEstrategia_seUsaEnLaAsignacion() {
+        // Arrange
+        DroneAcuatico drone = new DroneSuperficial("AR-01", 92, ZonaHidrica.EMBALSE_NORTE);
+        EstrategiaSeleccion nuevaEstrategia = mock(EstrategiaSeleccion.class);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(drone));
+        when(nuevaEstrategia.seleccionar(List.of(drone), solicitud)).thenReturn(Optional.of(drone));
+        asignador.cambiarEstrategia(nuevaEstrategia);
+        // Act
+        asignador.asignar(solicitud);
+        // Assert
+        verify(estrategiaMock, never()).seleccionar(any(), any());
     }
 
     @Test
@@ -214,6 +243,41 @@ class AsignadorAutomaticoTest {
         // Assert
         verify(centroControlMock, times(1)).notificarFalloAsignacion(eq(solicitud), any());
         verify(tecnicoMock, times(1)).notificarFalloAsignacion(eq(solicitud), any());
+    }
+
+    @Test
+    @DisplayName("Si un drone falla durante la asignación se excluye de los candidatos al buscar el alternativo")
+    void asignar_droneFallaDuranteAsignacion_excluyeloDeLosCandidatos() {
+        // Arrange
+        DroneAcuatico droneQueFalla = new DroneSuperficial("AR-15", 90, ZonaHidrica.RIBERA_ESTE);
+        DroneAcuatico alternativo = new DroneSuperficial("AR-04", 73, ZonaHidrica.RIBERA_ESTE);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(droneQueFalla, alternativo));
+        when(estrategiaMock.seleccionar(any(), any()))
+                .thenAnswer(invocacion -> {
+                    droneQueFalla.actualizarEstado(EstadoDrone.FALLO);
+                    return Optional.of(droneQueFalla);
+                })
+                .thenReturn(Optional.of(alternativo));
+        // Act
+        asignador.asignar(solicitud);
+        // Assert
+        verify(estrategiaMock, times(1)).seleccionar(List.of(alternativo), solicitud);
+    }
+
+    @Test
+    @DisplayName("Si la estrategia elige un drone con batería crítica no se asigna y se busca un alternativo")
+    void asignar_estrategiaEligeDroneConBateriaCritica_asignaDroneAlternativo() {
+        // Arrange
+        DroneAcuatico bateriaCritica = new DroneSuperficial("AR-03", 18, ZonaHidrica.LAGUNA_SUR);
+        DroneAcuatico alternativo = new DroneSuperficial("AR-04", 73, ZonaHidrica.RIBERA_ESTE);
+        when(repositorioMock.listarTodos()).thenReturn(List.of(alternativo));
+        when(estrategiaMock.seleccionar(any(), any()))
+                .thenReturn(Optional.of(bateriaCritica))
+                .thenReturn(Optional.of(alternativo));
+        // Act
+        Optional<Mision> mision = asignador.asignar(solicitud);
+        // Assert
+        assertEquals(Optional.of(alternativo), mision.map(Mision::getDrone));
     }
 
     @Test
